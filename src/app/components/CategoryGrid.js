@@ -40,7 +40,7 @@ const CategoryGrid = ({ categories: initialCategories = null }) => {
         <div className="max-w-[1920px] mx-auto px-4 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="aspect-[3/4] bg-gray-100 animate-pulse" />
+              <div key={i} className="aspect-square bg-gray-100 animate-pulse" />
             ))}
           </div>
         </div>
@@ -55,17 +55,25 @@ const CategoryGrid = ({ categories: initialCategories = null }) => {
   return (
     <section className="py-6 md:py-12 bg-white">
       <div className="max-w-[1920px] mx-auto px-4 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-6 sm:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {categories.map((cat) => (
-            <Link key={cat._id} href={`/${cat.slug}`} className="group block">
-              <div className="relative aspect-[3/4] overflow-hidden mb-2.5 sm:mb-3 bg-gray-100">
+            <Link
+              key={cat._id}
+              href={`/${cat.slug}`}
+              style={{
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+              }}
+              className="group block bg-white hover:shadow-md transition-shadow duration-300"
+            >
+              <div className="relative aspect-square overflow-hidden bg-gray-100">
                 {cat.image ? (
                   <OptimizedImage
                     src={cat.image}
                     alt={cat.name}
                     fill
                     sizePreset="category"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
                     quality={70}
                   />
                 ) : (
@@ -74,9 +82,11 @@ const CategoryGrid = ({ categories: initialCategories = null }) => {
                   </div>
                 )}
               </div>
-              <h3 className="text-center text-[11px] sm:text-xs md:text-sm font-medium uppercase tracking-wide text-gray-800 group-hover:text-black line-clamp-2">
-                {cat.name}
-              </h3>
+              <div className="py-3 px-2 bg-white">
+                <h3 className="text-center text-xs sm:text-[13px] font-medium uppercase tracking-wider text-gray-800 group-hover:text-black line-clamp-1">
+                  {cat.name}
+                </h3>
+              </div>
             </Link>
           ))}
         </div>
