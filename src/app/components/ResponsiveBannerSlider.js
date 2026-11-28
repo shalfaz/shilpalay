@@ -35,6 +35,7 @@ export default function ResponsiveBannerSlider({
   const draggedRef = useRef(false);
 
   const count = banners.length;
+  const activeIndex = count > 0 ? currentIndex % count : 0;
   const showFullImage = imageFit === 'contain';
   const resolvedImageClass =
     imageClassName ||
@@ -54,10 +55,6 @@ export default function ResponsiveBannerSlider({
     return () => query.removeEventListener?.('change', update);
   }, []);
 
-  useEffect(() => {
-    if (currentIndex >= count) setCurrentIndex(0);
-  }, [count, currentIndex]);
-
   const goToNext = useCallback(() => {
     if (count > 1) setCurrentIndex((prev) => (prev + 1) % count);
   }, [count]);
@@ -74,6 +71,7 @@ export default function ResponsiveBannerSlider({
 
   const handlePointerDown = (event) => {
     if (count <= 1) return;
+    if (event.target?.closest?.('button, a')) return;
     startXRef.current = event.clientX;
     startTimeRef.current = Date.now();
     draggedRef.current = false;
@@ -169,12 +167,12 @@ export default function ResponsiveBannerSlider({
         {banners.map((banner, index) => {
           let opacity = 0;
           if (!isDragging) {
-            opacity = index === currentIndex ? 1 : 0;
-          } else if (index === currentIndex) {
+            opacity = index === activeIndex ? 1 : 0;
+          } else if (index === activeIndex) {
             opacity = 1 - Math.abs(dragOffset) / 200;
-          } else if (index === (currentIndex + 1) % count && dragOffset < 0) {
+          } else if (index === (activeIndex + 1) % count && dragOffset < 0) {
             opacity = Math.abs(dragOffset) / 200;
-          } else if (index === (currentIndex - 1 + count) % count && dragOffset > 0) {
+          } else if (index === (activeIndex - 1 + count) % count && dragOffset > 0) {
             opacity = Math.abs(dragOffset) / 200;
           }
 
@@ -184,11 +182,11 @@ export default function ResponsiveBannerSlider({
               className="absolute inset-0 overflow-hidden"
               style={{
                 opacity,
-                zIndex: index === currentIndex ? 10 : 5,
+                zIndex: index === activeIndex ? 10 : 5,
                 transition: isDragging || reducedMotion ? 'none' : 'opacity 300ms ease-out',
-                pointerEvents: index === currentIndex ? 'auto' : 'none',
+                pointerEvents: index === activeIndex ? 'auto' : 'none',
               }}
-              aria-hidden={index !== currentIndex}
+              aria-hidden={index !== activeIndex}
             >
               {banner.image ? (
                 <OptimizedImage
@@ -205,7 +203,9 @@ export default function ResponsiveBannerSlider({
                 <div className="w-full h-full bg-gray-200" />
               )}
 
-              {resolvedOverlay ? <div className={`absolute inset-0 ${resolvedOverlay}`} /> : null}
+              {resolvedOverlay ? (
+                <div className={`absolute inset-0 pointer-events-none ${resolvedOverlay}`} />
+              ) : null}
 
               {(banner.title || (showCta && banner.link)) && (
                 <div
@@ -246,8 +246,13 @@ export default function ResponsiveBannerSlider({
         <>
           <button
             type="button"
-            onClick={goToPrevious}
-            className={`hidden sm:flex absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-20 min-w-11 min-h-11 items-center justify-center rounded-full backdrop-blur-sm transition-colors ${
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              goToPrevious();
+            }}
+            className={`hidden sm:flex absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-20 pointer-events-auto cursor-pointer min-w-11 min-h-11 items-center justify-center rounded-full backdrop-blur-sm transition-colors ${
               showFullImage
                 ? 'bg-black/15 text-black hover:bg-black/25'
                 : 'bg-black/25 text-white hover:bg-black/45'
@@ -258,8 +263,13 @@ export default function ResponsiveBannerSlider({
           </button>
           <button
             type="button"
-            onClick={goToNext}
-            className={`hidden sm:flex absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-20 min-w-11 min-h-11 items-center justify-center rounded-full backdrop-blur-sm transition-colors ${
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              goToNext();
+            }}
+            className={`hidden sm:flex absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-20 pointer-events-auto cursor-pointer min-w-11 min-h-11 items-center justify-center rounded-full backdrop-blur-sm transition-colors ${
               showFullImage
                 ? 'bg-black/15 text-black hover:bg-black/25'
                 : 'bg-black/25 text-white hover:bg-black/45'
@@ -269,14 +279,22 @@ export default function ResponsiveBannerSlider({
             <ChevronRight className="w-6 h-6" />
           </button>
 
-          <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+          <div
+            onPointerDown={(e) => e.stopPropagation()}
+            className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto flex items-center gap-2"
+          >
             {banners.map((_, index) => (
               <button
                 key={index}
                 type="button"
-                onClick={() => setCurrentIndex(index)}
-                className={`h-2 rounded-full transition-all duration-300 shadow-sm ${
-                  index === currentIndex
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setCurrentIndex(index);
+                }}
+                className={`h-2 rounded-full cursor-pointer transition-all duration-300 shadow-sm ${
+                  index === activeIndex
                     ? showFullImage
                       ? 'w-7 bg-black'
                       : 'w-7 bg-white'
@@ -285,7 +303,7 @@ export default function ResponsiveBannerSlider({
                       : 'w-2 bg-white/55 hover:bg-white/80'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
-                aria-current={index === currentIndex ? 'true' : undefined}
+                aria-current={index === activeIndex ? 'true' : undefined}
               />
             ))}
           </div>

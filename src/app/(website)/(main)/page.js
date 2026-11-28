@@ -20,6 +20,8 @@ export default async function Home() {
   const homepageBanners = filterBannersByPosition(banners, 'Homepage Banner');
   const offerBanners = filterBannersByPosition(banners, 'Offer Banner');
   const featuredBanners = filterBannersByPosition(banners, 'Featured Banner');
+  const topFeaturedBanners = featuredBanners.slice(0, 2);
+  const bottomFeaturedBanners = featuredBanners.slice(2);
 
   return (
     <main className="min-h-screen bg-white overflow-x-hidden">
@@ -27,12 +29,19 @@ export default async function Home() {
       <CategoryGrid categories={categories} />
       <FeaturedCollections banners={featuredCollections} />
       <WhatsNewProducts products={whatsNewProducts} />
+      {topFeaturedBanners.length > 0 && (
+        <div className="pb-2 sm:pb-3">
+          <FeaturedBanners banners={topFeaturedBanners} />
+        </div>
+      )}
       <HomepageBanner banners={homepageBanners} />
       <div className="py-2 sm:py-3">
         <OfferBanner banners={offerBanners} />
       </div>
 
-      <FeaturedBanners banners={featuredBanners} />
+      {bottomFeaturedBanners.length > 0 && (
+        <FeaturedBanners banners={bottomFeaturedBanners} />
+      )}
 
       <Newsletter />
     </main>
